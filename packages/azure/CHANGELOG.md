@@ -1,5 +1,37 @@
 # @cloud-carbon-footprint/azure
 
+## 1.5.0
+
+### Minor Changes
+
+- 6ffe7497: adds electricity maps api handling. For CLI create-app template changes, refer to [this commit](https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/commit/2749723c00343865c7453fea29609ea6dad4b5e9).
+
+### Patch Changes
+
+- Updated dependencies [bc06b861]
+- Updated dependencies [7630768d]
+- Updated dependencies [6ffe7497]
+  - @cloud-carbon-footprint/common@1.13.0
+
+## 1.4.1
+
+### Patch Changes
+
+- c515ba60: Adds aditional aliases for Azure regions
+
+## 1.4.0
+
+### Minor Changes
+
+- c82bf5fd: Adds config support for chunking/splitting azure requests by subscription
+- 1a5d7636: Adds support for listing Azure subscription IDs to fetch
+
+### Patch Changes
+
+- Updated dependencies [1a5d7636]
+- Updated dependencies [c82bf5fd]
+  - @cloud-carbon-footprint/common@1.12.0
+
 ## 1.3.0
 
 ### Minor Changes

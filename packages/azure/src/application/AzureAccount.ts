@@ -28,6 +28,7 @@ import {
   GroupBy,
   Logger,
   LookupTableInput,
+  LookupTableOutput,
   RecommendationResult,
 } from '@cloud-carbon-footprint/common'
 import R from 'ramda'
@@ -80,9 +81,11 @@ export default class AzureAccount extends CloudProviderAccount {
     endDate: Date,
     grouping: GroupBy,
   ): Promise<EstimationResult[]> {
-    const subscriptions = await this.getSubscriptions()
-
     const AZURE = configLoader().AZURE
+
+    const subscriptions = AZURE.SUBSCRIPTIONS?.length
+      ? await this.getSubscriptionsByIds(AZURE.SUBSCRIPTIONS)
+      : await this.getSubscriptions()
 
     const requests = this.createSubscriptionRequests(
       subscriptions,
@@ -91,34 +94,20 @@ export default class AzureAccount extends CloudProviderAccount {
       grouping,
     )
 
-    // If chunking by day is enabled, synchronously fetch each subscription
-    if (AZURE.CONSUMPTION_CHUNKS_DAYS) {
-      const estimationResults: Array<Array<EstimationResult>> = []
-      for (const request of requests) {
-        estimationResults.push(await request())
-      }
-      return estimationResults.flat()
-    }
-
-    // If chunking by day is disabled, asynchronously fetch all or chunked subscriptions
+    // Fetch subscriptions in configured chunks or 10 at a time by default.
     const chunkedRequests = AZURE.SUBSCRIPTION_CHUNKS
       ? R.splitEvery(AZURE.SUBSCRIPTION_CHUNKS, requests)
       : [requests]
     this.logger.debug(
-      `Fetching Azure consumption data with ${AZURE.SUBSCRIPTION_CHUNKS}} 1} chunk(s)`,
+      `Fetching Azure consumption data with ${AZURE.SUBSCRIPTION_CHUNKS} chunk(s)`,
     )
 
-    // TODO: Remove before release.
-    console.time(`Azure Subscriptions: ${AZURE.SUBSCRIPTION_CHUNKS} chunk(s)`)
     const estimationResults = []
     for (const requests of chunkedRequests) {
       estimationResults.push(
         await Promise.all(requests.map(async (request) => request())),
       )
     }
-    console.timeEnd(
-      `Azure Subscriptions: ${AZURE.SUBSCRIPTION_CHUNKS || 1} chunk(s)`,
-    )
 
     return R.flatten(estimationResults)
   }
@@ -139,9 +128,30 @@ export default class AzureAccount extends CloudProviderAccount {
     return subscriptions
   }
 
-  static getDataFromConsumptionManagementInputData(
+  private async getSubscriptionsByIds(
+    subscriptionIds: string[],
+  ): Promise<Subscription[]> {
+    const subscriptions = []
+
+    for (const subscriptionId of subscriptionIds) {
+      try {
+        const subscription = await this.subscriptionClient.subscriptions.get(
+          subscriptionId,
+        )
+        subscriptions.push(subscription)
+      } catch (error) {
+        this.logger.warn(
+          `Unable to fetch subscription details for: "${subscriptionId}". Reason: ${error.message}`,
+        )
+      }
+    }
+
+    return subscriptions
+  }
+
+  static async getDataFromConsumptionManagementInputData(
     inputData: LookupTableInput[],
-  ) {
+  ): Promise<LookupTableOutput[]> {
     const consumptionManagementService = new ConsumptionManagementService(
       new ComputeEstimator(),
       new StorageEstimator(AZURE_CLOUD_CONSTANTS.SSDCOEFFICIENT),
@@ -153,7 +163,9 @@ export default class AzureAccount extends CloudProviderAccount {
         AZURE_CLOUD_CONSTANTS.SERVER_EXPECTED_LIFESPAN,
       ),
     )
-    return consumptionManagementService.getEstimatesFromInputData(inputData)
+    return await consumptionManagementService.getEstimatesFromInputData(
+      inputData,
+    )
   }
 
   private async getRecommendationsForSubscription(subscriptionId: string) {
@@ -183,7 +195,7 @@ export default class AzureAccount extends CloudProviderAccount {
       ),
       new ConsumptionManagementClient(this.credentials, subscriptionId),
     )
-    return consumptionManagementService.getEstimates(
+    return await consumptionManagementService.getEstimates(
       startDate,
       endDate,
       grouping,

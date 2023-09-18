@@ -4,6 +4,7 @@
 import fs from 'fs'
 import dotenv from 'dotenv'
 import { AWS_RECOMMENDATIONS_SERVICES } from './RecommendationsService'
+
 dotenv.config()
 
 export interface CCFConfig {
@@ -60,6 +61,15 @@ export interface CCFConfig {
     RESOURCE_TAG_NAMES?: string[]
     CONSUMPTION_CHUNKS_DAYS?: number
     SUBSCRIPTION_CHUNKS?: number
+    SUBSCRIPTIONS: string[]
+  }
+  ALI?: {
+    NAME?: string
+    INCLUDE_ESTIMATES?: boolean
+    authentication?: {
+      accessKeyId: string
+      accessKeySecret: string
+    }
   }
   LOGGING_MODE?: string
   CACHE_MODE?: string
@@ -81,6 +91,7 @@ export interface CCFConfig {
     URI?: string
     CREDENTIALS?: string
   }
+  ELECTRICITY_MAPS_TOKEN?: string
 }
 
 export interface AWSAccount {
@@ -132,6 +143,12 @@ const getGCPProjects = () => {
   return process.env.GCP_PROJECTS ? process.env.GCP_PROJECTS : '[]'
 }
 
+const getAzureSubscriptions = () => {
+  return process.env.AZURE_SUBSCRIPTIONS
+    ? process.env.AZURE_SUBSCRIPTIONS
+    : '[]'
+}
+
 // This function allows support for using Docker Secrets.
 const getEnvVar = (envVar: string): string => {
   try {
@@ -143,9 +160,7 @@ const getEnvVar = (envVar: string): string => {
 
 const getConfig = (): CCFConfig => ({
   AWS: {
-    INCLUDE_ESTIMATES: process.env.AWS_INCLUDE_ESTIMATES
-      ? !!process.env.AWS_INCLUDE_ESTIMATES
-      : true,
+    INCLUDE_ESTIMATES: process.env.AWS_INCLUDE_ESTIMATES !== 'false',
     USE_BILLING_DATA:
       !!process.env.AWS_USE_BILLING_DATA &&
       process.env.AWS_USE_BILLING_DATA !== 'false',
@@ -231,9 +246,7 @@ const getConfig = (): CCFConfig => ({
     USE_CARBON_FREE_ENERGY_PERCENTAGE:
       !!process.env.GCP_USE_CARBON_FREE_ENERGY_PERCENTAGE &&
       process.env.GCP_USE_CARBON_FREE_ENERGY_PERCENTAGE !== 'false',
-    INCLUDE_ESTIMATES: process.env.GCP_INCLUDE_ESTIMATES
-      ? !!process.env.GCP_INCLUDE_ESTIMATES
-      : true,
+    INCLUDE_ESTIMATES: process.env.GCP_INCLUDE_ESTIMATES !== 'false',
     USE_BILLING_DATA:
       !!process.env.GCP_USE_BILLING_DATA &&
       process.env.GCP_USE_BILLING_DATA !== 'false',
@@ -248,9 +261,7 @@ const getConfig = (): CCFConfig => ({
     RESOURCE_TAG_NAMES: JSON.parse(getGCPResourceTagNames()),
   },
   AZURE: {
-    INCLUDE_ESTIMATES: process.env.AZURE_INCLUDE_ESTIMATES
-      ? !!process.env.AZURE_INCLUDE_ESTIMATES
-      : true,
+    INCLUDE_ESTIMATES: process.env.AZURE_INCLUDE_ESTIMATES !== 'false',
     USE_BILLING_DATA:
       !!process.env.AZURE_USE_BILLING_DATA &&
       process.env.AZURE_USE_BILLING_DATA !== 'false',
@@ -265,8 +276,17 @@ const getConfig = (): CCFConfig => ({
       getEnvVar('AZURE_CONSUMPTION_CHUNKS_DAYS') || '0',
     ),
     SUBSCRIPTION_CHUNKS: parseInt(
-      getEnvVar('AZURE_SUBSCRIPTION_CHUNKS') || '0',
+      getEnvVar('AZURE_SUBSCRIPTION_CHUNKS') || '10',
     ),
+    SUBSCRIPTIONS: JSON.parse(getAzureSubscriptions()) || [],
+  },
+  ALI: {
+    NAME: 'AliCloud',
+    INCLUDE_ESTIMATES: process.env.ALI_INCLUDE_ESTIMATES !== 'false',
+    authentication: {
+      accessKeyId: process.env.ALI_ACCESS_KEY,
+      accessKeySecret: process.env.ALI_ACCESS_SECRET,
+    },
   },
   LOGGING_MODE: process.env.LOGGING_MODE || '',
   CACHE_MODE: getEnvVar('CACHE_MODE') || '',
@@ -294,6 +314,7 @@ const getConfig = (): CCFConfig => ({
     URI: getEnvVar('MONGODB_URI') || '',
     CREDENTIALS: getEnvVar('MONGODB_CREDENTIALS') || '',
   },
+  ELECTRICITY_MAPS_TOKEN: getEnvVar('ELECTRICITY_MAPS_TOKEN') || '',
 })
 
 export default getConfig

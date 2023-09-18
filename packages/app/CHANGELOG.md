@@ -1,5 +1,43 @@
 # @cloud-carbon-footprint/app
 
+## 1.4.0
+
+### Minor Changes
+
+- dd98c8cb: Enables Ali Cloud ECS estimates in the CCF Application
+- 6ffe7497: adds electricity maps api handling. For CLI create-app template changes, refer to [this commit](https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/commit/2749723c00343865c7453fea29609ea6dad4b5e9).
+
+### Patch Changes
+
+- Updated dependencies [bc06b861]
+- Updated dependencies [7630768d]
+- Updated dependencies [dd98c8cb]
+- Updated dependencies [53812d8d]
+- Updated dependencies [6ffe7497]
+  - @cloud-carbon-footprint/common@1.13.0
+  - @cloud-carbon-footprint/ali@0.1.2
+  - @cloud-carbon-footprint/gcp@0.14.0
+  - @cloud-carbon-footprint/aws@0.15.0
+  - @cloud-carbon-footprint/azure@1.5.0
+
+## 1.3.0
+
+### Minor Changes
+
+- fedf79c0: API and CLI processes now persist connection to mongodb client when enabled as cache
+
+  For Create-App changes, please refer to this [commit](https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/commit/8995b8a7f29fb06f8a437166d32e75b1ed147870).
+
+### Patch Changes
+
+- Updated dependencies [c82bf5fd]
+- Updated dependencies [1a5d7636]
+- Updated dependencies [c82bf5fd]
+- Updated dependencies [4683b86f]
+  - @cloud-carbon-footprint/azure@1.4.0
+  - @cloud-carbon-footprint/common@1.12.0
+  - @cloud-carbon-footprint/gcp@0.13.1
+
 ## 1.2.2
 
 ### Patch Changes

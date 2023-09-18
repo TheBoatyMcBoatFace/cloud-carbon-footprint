@@ -20,18 +20,31 @@ async function update() {
     updatedMonth = getPreviousMonth(updatedMonth)
 
     footprint.serviceEstimates.forEach((serviceEstimate) => {
-      const regionObj = mockData.emissions.find(o => o.region === serviceEstimate.region)
-      const { mtPerKwHour } = regionObj
-      const updatedC02e = serviceEstimate.kilowattHours * mtPerKwHour
-      serviceEstimate.co2e = updatedC02e
+      // TODO: Remove this until we have AliCloud mock Emissions data
+      if (serviceEstimate.cloudProvider !== 'AliCloud') {
+        const regionObj = mockData.emissions.find(
+          (o) => o.region === serviceEstimate.region,
+        )
+        const { mtPerKwHour } = regionObj
+        const updatedC02e = serviceEstimate.kilowattHours * mtPerKwHour * 10
+        let updatedCost = (updatedC02e / 0.0024) // Sample cost:co2e ratio
+        updatedCost *=  Math.floor(Math.random() * (10 - 2 + 1) + 2) // Increase magnitude
+        serviceEstimate.co2e = updatedC02e
+        serviceEstimate.cost = updatedCost
+      }
     })
   })
 
   mockData.recommendations.forEach((recommendation) => {
-    const regionObj = mockData.emissions.find(o => o.region === recommendation.region)
+    const regionObj = mockData.emissions.find(
+      (o) => o.region === recommendation.region,
+    )
     const { mtPerKwHour } = regionObj
     const updatedC02e = recommendation.kilowattHourSavings * mtPerKwHour
+    let updatedCostSavings = updatedC02e / 0.0024 // Sample cost:co2e ratio
+    updatedCostSavings *= Math.floor(Math.random() * (10 - 2 + 1) + 2) // Increase magnitude
     recommendation.co2eSavings = updatedC02e
+    recommendation.costSavings = updatedCostSavings
   })
 
   fs.writeFileSync(

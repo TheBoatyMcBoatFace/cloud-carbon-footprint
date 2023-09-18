@@ -19,6 +19,7 @@ export interface ClientConfig {
   START_DATE: string
   END_DATE: string
   DISABLE_CACHE: boolean
+  DISABLE_FORECAST_VALIDATION: boolean
   TEST_MODE: boolean
 }
 
@@ -30,6 +31,8 @@ let pageLimit = process.env.REACT_APP_PAGE_LIMIT || '50000'
 let baseUrl = process.env.REACT_APP_BASE_URL || '/api'
 let endDate = process.env.REACT_APP_END_DATE
 let minDateAge = process.env.REACT_APP_MINIMAL_DATE_AGE || '0'
+let disableForecastValidation =
+  process.env.REACT_APP_DISABLE_FORECAST_VALIDATION === 'true'
 
 // For local development / integration testing
 if (process.env.REACT_APP_TEST_MODE === 'true') {
@@ -39,6 +42,7 @@ if (process.env.REACT_APP_TEST_MODE === 'true') {
   baseUrl = 'http://127.0.0.1:3000/api'
   endDate = null
   minDateAge = '0'
+  disableForecastValidation = true
 }
 
 const appConfig: ClientConfig = {
@@ -46,6 +50,7 @@ const appConfig: ClientConfig = {
     { key: 'aws', name: 'AWS' },
     { key: 'gcp', name: 'GCP' },
     { key: 'azure', name: 'Azure' },
+    { key: 'alicloud', name: 'AliCloud' },
   ],
   PREVIOUS_YEAR_OF_USAGE: previousYearOfUsage,
   DATE_RANGE: {
@@ -59,6 +64,7 @@ const appConfig: ClientConfig = {
   START_DATE: process.env.REACT_APP_START_DATE,
   END_DATE: endDate,
   DISABLE_CACHE: process.env.REACT_APP_DISABLE_CACHE === 'true',
+  DISABLE_FORECAST_VALIDATION: disableForecastValidation,
   TEST_MODE: process.env.REACT_APP_TEST_MODE === 'true',
 }
 
